@@ -189,7 +189,7 @@ function CertificationsPage() {
                         <Award className="h-7 w-7 text-seculo-yellow" />
                         Horas Complementares
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-gray-500 dark:text-gray-300 mt-1">
                         Gerencie seus certificados e acompanhe o aproveitamento de horas complementares.
                     </p>
                 </div>
@@ -206,7 +206,7 @@ function CertificationsPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Horas Aprovadas</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-300">Horas Aprovadas</p>
                                 <p className="text-3xl font-bold mt-1">{totalHoursApproved}h</p>
                                 <p className="text-xs text-gray-400 mt-1">de {requiredHours}h necessárias</p>
                             </div>
@@ -222,7 +222,7 @@ function CertificationsPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Horas Enviadas</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-300">Horas Enviadas</p>
                                 <p className="text-3xl font-bold mt-1">{totalHoursSubmitted}h</p>
                                 <p className="text-xs text-gray-400 mt-1">total submetido</p>
                             </div>
@@ -238,7 +238,7 @@ function CertificationsPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Certificados</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-300">Certificados</p>
                                 <p className="text-3xl font-bold mt-1">{certificates.length}</p>
                                 <p className="text-xs text-gray-400 mt-1">cadastrados</p>
                             </div>
@@ -254,7 +254,7 @@ function CertificationsPage() {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Pendentes</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-300">Pendentes</p>
                                 <p className="text-3xl font-bold mt-1">{totalPending}</p>
                                 <p className="text-xs text-gray-400 mt-1">aguardando análise</p>
                             </div>
@@ -269,33 +269,50 @@ function CertificationsPage() {
             {/* ── Progress bar ── */}
             <Card>
                 <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                        <div>
-                            <p className="font-semibold text-gray-900 dark:text-white">Progresso de Horas Complementares</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {totalHoursApproved} de {requiredHours} horas aprovadas
-                            </p>
+                    <div className="flex flex-col items-center text-center">
+                        <p className="font-semibold text-gray-900 dark:text-white mb-4">Progresso de Horas Complementares</p>
+                        <div className="relative w-32 h-32 mb-4">
+                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                <path
+                                    d="M18 2.0845
+                                      a 15.9155 15.9155 0 0 1 0 31.831
+                                      a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    className="text-gray-200 dark:text-gray-700"
+                                />
+                                <path
+                                    d="M18 2.0845
+                                      a 15.9155 15.9155 0 0 1 0 31.831
+                                      a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeDasharray={`${progressPercent}, 100`}
+                                    className={cn(
+                                        'transition-all duration-700 ease-out',
+                                        progressPercent >= 100
+                                            ? 'text-green-500'
+                                            : 'text-seculo-blue dark:text-seculo-yellow'
+                                    )}
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className={cn(
+                                    'text-2xl font-bold',
+                                    progressPercent >= 100 ? 'text-green-600 dark:text-green-400' : 'text-seculo-blue dark:text-seculo-yellow'
+                                )}>
+                                    {progressPercent.toFixed(0)}%
+                                </span>
+                            </div>
                         </div>
-                        <span className={cn(
-                            'text-2xl font-bold',
-                            progressPercent >= 100 ? 'text-green-600 dark:text-green-400' : 'text-seculo-blue dark:text-seculo-yellow'
-                        )}>
-                            {progressPercent.toFixed(0)}%
-                        </span>
-                    </div>
-                    <div className="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                            className={cn(
-                                'h-full rounded-full transition-all duration-700 ease-out',
-                                progressPercent >= 100
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-400'
-                                    : 'bg-gradient-to-r from-seculo-blue to-seculo-blue-light dark:from-seculo-yellow dark:to-seculo-yellow-light'
-                            )}
-                            style={{ width: `${progressPercent}%` }}
-                        />
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            {totalHoursApproved} de {requiredHours} horas aprovadas
+                        </p>
                     </div>
                     {/* Category breakdown mini */}
-                    <div className="flex flex-wrap gap-3 mt-4">
+                    <div className="flex flex-wrap gap-3 justify-center">
                         {CATEGORIES.map((cat) => {
                             const catHours = certificates
                                 .filter(c => c.category === cat.value && c.status === 'aprovado')
@@ -528,7 +545,7 @@ function CertificationsPage() {
                             <Award className="h-8 w-8 text-gray-400" />
                         </div>
                         <p className="font-medium text-gray-700 dark:text-gray-300">Nenhum certificado encontrado</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
                             {searchQuery || filterStatus !== 'todos' || filterCategory !== 'todos'
                                 ? 'Tente ajustar os filtros de busca.'
                                 : 'Cadastre seu primeiro certificado clicando no botão acima.'}
@@ -570,7 +587,7 @@ function CertificationsPage() {
                                                     {cert.title}
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+                                            <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-300 flex-wrap">
                                                 <span>{cert.institution}</span>
                                                 <span className="hidden sm:inline">•</span>
                                                 <span className="hidden sm:inline">{catInfo.label}</span>
@@ -599,24 +616,24 @@ function CertificationsPage() {
                                         <div className="border-t px-4 pb-4 pt-3 space-y-4 animate-fade-in">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Instituição</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Instituição</p>
                                                     <p className="text-sm font-medium mt-0.5">{cert.institution}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categoria</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Categoria</p>
                                                     <p className="text-sm font-medium mt-0.5 flex items-center gap-1.5">
                                                         <CatIcon className="h-3.5 w-3.5" />
                                                         {catInfo.label}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Data de Conclusão</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data de Conclusão</p>
                                                     <p className="text-sm font-medium mt-0.5">
                                                         {new Date(cert.date).toLocaleDateString('pt-BR')}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Horas Aprovadas</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Horas Aprovadas</p>
                                                     <p className="text-sm font-medium mt-0.5">
                                                         {cert.approvedHours !== null ? `${cert.approvedHours}h` : '—'}
                                                     </p>
@@ -625,7 +642,7 @@ function CertificationsPage() {
 
                                             {cert.description && (
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descrição</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Descrição</p>
                                                     <p className="text-sm mt-0.5 text-gray-700 dark:text-gray-300">{cert.description}</p>
                                                 </div>
                                             )}
@@ -669,18 +686,6 @@ function CertificationsPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Rejection reason */}
-                                            {cert.status === 'rejeitado' && (
-                                                <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                                                    <XCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
-                                                    <div>
-                                                        <p className="text-sm font-medium text-red-700 dark:text-red-400">Certificado rejeitado</p>
-                                                        <p className="text-xs text-red-600 dark:text-red-300 mt-0.5">
-                                                            Motivo: Documento não contém carga horária especificada. Envie uma versão atualizada.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     )}
                                 </CardContent>
@@ -708,7 +713,7 @@ function CertificationsPage() {
                         </div>
                         <div className="p-8 flex flex-col items-center justify-center min-h-[400px] bg-gray-50 dark:bg-gray-800">
                             <Image className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Pré-visualização do certificado</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-300">Pré-visualização do certificado</p>
                             <p className="text-xs text-gray-400 mt-1">{previewCert.fileName} • {previewCert.fileSize}</p>
                         </div>
                         <div className="flex items-center justify-end gap-2 p-4 border-t dark:border-gray-700">
