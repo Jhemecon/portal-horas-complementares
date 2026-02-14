@@ -3,18 +3,6 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
-    LayoutDashboard,
-    Users,
-    BookOpen,
-    ClipboardList,
-    Calendar,
-    CalendarCheck,
-    MessageSquare,
-    Megaphone,
-    MessageCircle,
-    FileText,
-    FolderOpen,
-    BarChart3,
     Settings,
     ChevronLeft,
     ChevronRight,
@@ -24,57 +12,9 @@ import {
 
 const menuItems = [
     {
-        title: 'Principal',
-        items: [
-            { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-        ],
-    },
-    {
-        title: 'Alunos',
-        items: [
-            { icon: Users, label: 'Lista de Alunos', href: '/students' },
-        ],
-    },
-    {
-        title: 'Diário',
-        items: [
-            { icon: BookOpen, label: 'Lançar Notas', href: '/gradebook' },
-            { icon: ClipboardList, label: 'Frequência', href: '/attendance' },
-            { icon: BarChart3, label: 'Relatórios', href: '/reports' },
-        ],
-    },
-    {
-        title: 'Agenda',
-        items: [
-            { icon: Calendar, label: 'Calendário', href: '/calendar' },
-            { icon: CalendarCheck, label: 'Reservas', href: '/reservations' },
-        ],
-    },
-    {
-        title: 'Comunicação',
-        items: [
-            { icon: MessageSquare, label: 'Mensagens', href: '/messages' },
-            { icon: Megaphone, label: 'Comunicados', href: '/announcements' },
-            { icon: MessageCircle, label: 'Fóruns', href: '/forums' },
-        ],
-    },
-    {
-        title: 'Recursos',
-        items: [
-            { icon: FileText, label: 'Planos de Aula', href: '/lesson-plans' },
-            { icon: FolderOpen, label: 'Biblioteca', href: '/files' },
-        ],
-    },
-    {
         title: 'Certificados',
         items: [
             { icon: Award, label: 'Horas Complementares', href: '/certifications' },
-        ],
-    },
-    {
-        title: 'Análises',
-        items: [
-            { icon: BarChart3, label: 'Analytics', href: '/analytics' },
         ],
     },
 ];
@@ -105,13 +45,13 @@ function Sidebar() {
             >
                 {/* Logo */}
                 <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
-                    <Link to="/dashboard" className="flex items-center gap-3">
+                    <Link to="/certifications" className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-seculo-yellow flex items-center justify-center flex-shrink-0">
                             <GraduationCap className="w-6 h-6 text-seculo-blue" />
                         </div>
                         {sidebarOpen && (
                             <div className="text-white">
-                                <p className="font-semibold text-sm">Portal do Professor</p>
+                                <p className="font-semibold text-sm">Portal do Aluno</p>
                                 <p className="text-xs text-blue-200">Colégio Século</p>
                             </div>
                         )}
