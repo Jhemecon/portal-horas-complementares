@@ -8,6 +8,9 @@ import {
     ChevronRight,
     GraduationCap,
     Award,
+    History,
+    HelpCircle,
+    Bell,
 } from 'lucide-react';
 
 const menuItems = [
@@ -15,6 +18,19 @@ const menuItems = [
         title: 'Certificados',
         items: [
             { icon: Award, label: 'Horas Complementares', href: '/certifications' },
+            { icon: History, label: 'Histórico', href: '/history' },
+        ],
+    },
+    {
+        title: 'Comunicação',
+        items: [
+            { icon: Bell, label: 'Notificações', href: '/notifications' },
+        ],
+    },
+    {
+        title: 'Suporte',
+        items: [
+            { icon: HelpCircle, label: 'Central de Ajuda', href: '/help' },
         ],
     },
 ];

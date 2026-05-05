@@ -15,6 +15,15 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 // Certifications
 import CertificationsPage from '@/pages/certifications/Certifications';
 
+// History
+import HistoryPage from '@/pages/history/HistoryPage';
+
+// Help
+import HelpPage from '@/pages/help/HelpPage';
+
+// Notifications
+import NotificationsPage from '@/pages/notifications/NotificationsPage';
+
 // Protected Route Component
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
@@ -36,6 +45,15 @@ function App() {
 
                             {/* Certifications */}
                             <Route path="/certifications" element={<CertificationsPage />} />
+
+                            {/* History */}
+                            <Route path="/history" element={<HistoryPage />} />
+
+                            {/* Help */}
+                            <Route path="/help" element={<HelpPage />} />
+
+                            {/* Notifications */}
+                            <Route path="/notifications" element={<NotificationsPage />} />
                         </Route>
 
                         {/* 404 */}

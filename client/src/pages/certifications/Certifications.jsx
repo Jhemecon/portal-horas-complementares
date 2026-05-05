@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import ProgressBar from '@/components/ui/progress-bar';
+import FileUpload from '@/components/ui/file-upload';
+import { toast } from 'sonner';
+import { useApp } from '@/contexts/AppContext';
 import {
     Award,
     Upload,
@@ -128,6 +132,7 @@ function CertificationsPage() {
     const [showFilters, setShowFilters] = useState(false);
     const [previewCert, setPreviewCert] = useState(null);
     const fileInputRef = useRef(null);
+    const { addNotification } = useApp();
 
     // Form state
     const [formData, setFormData] = useState({
@@ -146,6 +151,19 @@ function CertificationsPage() {
     const totalPending = certificates.filter(c => c.status === 'pendente' || c.status === 'revisao').length;
     const requiredHours = 200;
     const progressPercent = Math.min((totalHoursApproved / requiredHours) * 100, 100);
+
+    // Cálculo por categoria
+    const categoryProgress = CATEGORIES.map(cat => {
+        const completed = certificates
+            .filter(c => c.category === cat.value && c.status === 'aprovado')
+            .reduce((acc, c) => acc + (c.approvedHours || 0), 0);
+        const required = 50; // Exemplo: 50h por categoria
+        return {
+            name: cat.label.split(' / ')[0],
+            completed,
+            required,
+        };
+    });
 
     // ── Filtros ──
     const filtered = certificates.filter((c) => {
@@ -172,6 +190,18 @@ function CertificationsPage() {
         setCertificates((prev) => [newCert, ...prev]);
         setFormData({ title: '', institution: '', category: 'curso', hours: '', date: '', description: '', file: null });
         setShowForm(false);
+
+        // Notificação de sucesso
+        toast.success('Certificado enviado com sucesso!', {
+            description: 'Sua solicitação será analisada em breve.',
+        });
+
+        // Adicionar notificação
+        addNotification({
+            title: 'Certificado Enviado',
+            message: `Seu certificado "${newCert.title}" foi enviado e está aguardando análise.`,
+            type: 'info',
+        });
     };
 
     const handleDelete = (id) => {
@@ -267,68 +297,11 @@ function CertificationsPage() {
             </div>
 
             {/* ── Progress bar ── */}
-            <Card>
-                <CardContent className="p-6">
-                    <div className="flex flex-col items-center text-center">
-                        <p className="font-semibold text-gray-900 dark:text-white mb-4">Progresso de Horas Complementares</p>
-                        <div className="relative w-32 h-32 mb-4">
-                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                <path
-                                    d="M18 2.0845
-                                      a 15.9155 15.9155 0 0 1 0 31.831
-                                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    className="text-gray-200 dark:text-gray-700"
-                                />
-                                <path
-                                    d="M18 2.0845
-                                      a 15.9155 15.9155 0 0 1 0 31.831
-                                      a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeDasharray={`${progressPercent}, 100`}
-                                    className={cn(
-                                        'transition-all duration-700 ease-out',
-                                        progressPercent >= 100
-                                            ? 'text-green-500'
-                                            : 'text-seculo-blue dark:text-seculo-yellow'
-                                    )}
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className={cn(
-                                    'text-2xl font-bold',
-                                    progressPercent >= 100 ? 'text-green-600 dark:text-green-400' : 'text-seculo-blue dark:text-seculo-yellow'
-                                )}>
-                                    {progressPercent.toFixed(0)}%
-                                </span>
-                            </div>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            {totalHoursApproved} de {requiredHours} horas aprovadas
-                        </p>
-                    </div>
-                    {/* Category breakdown mini */}
-                    <div className="flex flex-wrap gap-3 justify-center">
-                        {CATEGORIES.map((cat) => {
-                            const catHours = certificates
-                                .filter(c => c.category === cat.value && c.status === 'aprovado')
-                                .reduce((acc, c) => acc + (c.approvedHours || 0), 0);
-                            if (catHours === 0) return null;
-                            const CatIcon = cat.icon;
-                            return (
-                                <div key={cat.value} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1.5 rounded-full">
-                                    <CatIcon className="h-3.5 w-3.5" />
-                                    <span>{cat.label.split(' / ')[0]}: <strong>{catHours}h</strong></span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
+            <ProgressBar
+                totalRequired={requiredHours}
+                currentCompleted={totalHoursApproved}
+                categories={categoryProgress}
+            />
 
             {/* ── Formulário de novo certificado ── */}
             {showForm && (
@@ -431,41 +404,11 @@ function CertificationsPage() {
 
                                 {/* Upload */}
                                 <div className="md:col-span-2">
-                                    <Label>Arquivo do Certificado *</Label>
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className={cn(
-                                            'mt-1.5 flex flex-col items-center justify-center gap-2 p-8 rounded-lg border-2 border-dashed cursor-pointer transition-colors',
-                                            'border-gray-300 dark:border-gray-600 hover:border-seculo-blue dark:hover:border-seculo-yellow',
-                                            'bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800',
-                                            formData.file && 'border-green-400 bg-green-50 dark:bg-green-900/20 dark:border-green-600'
-                                        )}
-                                    >
-                                        {formData.file ? (
-                                            <>
-                                                <CheckCircle2 className="h-8 w-8 text-green-500" />
-                                                <p className="text-sm font-medium text-green-700 dark:text-green-400">{formData.file.name}</p>
-                                                <p className="text-xs text-gray-500">{(formData.file.size / 1024 / 1024).toFixed(2)} MB</p>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload className="h-8 w-8 text-gray-400" />
-                                                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                                                    Clique para fazer upload ou arraste o arquivo
-                                                </p>
-                                                <p className="text-xs text-gray-400">
-                                                    PDF, JPG ou PNG • Máximo 10 MB
-                                                </p>
-                                            </>
-                                        )}
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept=".pdf,.jpg,.jpeg,.png"
-                                            className="hidden"
-                                            onChange={(e) => setFormData({ ...formData, file: e.target.files?.[0] || null })}
-                                        />
-                                    </div>
+                                    <FileUpload
+                                        onFileSelect={(file) => setFormData({ ...formData, file })}
+                                        currentFile={formData.file}
+                                        onRemove={() => setFormData({ ...formData, file: null })}
+                                    />
                                 </div>
                             </div>
 
