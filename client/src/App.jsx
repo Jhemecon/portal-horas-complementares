@@ -40,7 +40,7 @@ function App() {
                         </Route>
 
                         {/* Protected Dashboard Routes */}
-                        <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+                        <Route element={<DashboardLayout />}>
                             <Route path="/" element={<Navigate to="/certifications" replace />} />
 
                             {/* Certifications */}

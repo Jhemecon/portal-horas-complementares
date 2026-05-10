@@ -18,49 +18,49 @@ export const ROLE_LABELS = {
 };
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState({ name: "Admin Teste", role: "admin" });
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Check for existing session on mount
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const token = localStorage.getItem('auth_token');
-                const savedUser = localStorage.getItem('user_data');
+    // Temporarily disabled auth check for testing
+    // useEffect(() => {
+    //     const checkAuth = async () => {
+    //         try {
+    //             const token = localStorage.getItem('auth_token');
+    //             const savedUser = localStorage.getItem('user_data');
 
-                // Se tem dados de usuário salvos (mock), usa eles
-                if (token && savedUser) {
-                    setUser(JSON.parse(savedUser));
-                    setLoading(false);
-                    return;
-                }
+    //             // Se tem dados de usuário salvos (mock), usa eles
+    //             if (token && savedUser) {
+    //                 setUser(JSON.parse(savedUser));
+    //                 setLoading(false);
+    //                 return;
+    //             }
 
-                if (token) {
-                    const response = await fetch('/api/auth/me', {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
+    //             if (token) {
+    //                 const response = await fetch('/api/auth/me', {
+    //                     headers: {
+    //                         Authorization: `Bearer ${token}`,
+    //                     },
+    //                 });
 
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setUser(userData);
-                    } else {
-                        localStorage.removeItem('auth_token');
-                        localStorage.removeItem('user_data');
-                    }
-                }
-            } catch (err) {
-                console.error('Auth check failed:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    //                 if (response.ok) {
+    //                     const userData = await response.json();
+    //                     setUser(userData);
+    //                 } else {
+    //                     localStorage.removeItem('auth_token');
+    //                     localStorage.removeItem('user_data');
+    //                 }
+    //             }
+    //         } catch (err) {
+    //             console.error('Auth check failed:', err);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
 
-        checkAuth();
-    }, []);
+    //     checkAuth();
+    // }, []);
 
     const login = useCallback(async (email, password) => {
         setLoading(true);
