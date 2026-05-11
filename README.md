@@ -17,9 +17,7 @@ Sistema web para gerenciamento de horas complementares e atividades acadêmicas 
 - [Instalação](#-instalação)
 - [Uso](#-uso)
 - [Credenciais de Teste](#-credenciais-de-teste)
-- [Screenshots](#-screenshots)
 - [Roadmap](#-roadmap)
-- [Contribuindo](#-contribuindo)
 - [Licença](#-licença)
 
 ---
