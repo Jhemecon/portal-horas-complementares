@@ -1,21 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { USER_ROLES, hasPermissionForRole, hasRole as hasRoleUtil } from '@/lib/auth';
 
 const AuthContext = createContext(null);
 
-export const USER_ROLES = {
-    TEACHER: 'teacher',
-    COORDINATOR: 'coordinator',
-    SECRETARY: 'secretary',
-    ADMIN: 'admin',
-};
-
-export const ROLE_LABELS = {
-    [USER_ROLES.TEACHER]: 'Professor',
-    [USER_ROLES.COORDINATOR]: 'Coordenador',
-    [USER_ROLES.SECRETARY]: 'Secretaria',
-    [USER_ROLES.ADMIN]: 'Gestor',
-};
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState({ name: "Admin Teste", role: "admin" });
@@ -142,46 +130,12 @@ export function AuthProvider({ children }) {
 
     const hasPermission = useCallback((permission) => {
         if (!user) return false;
-
-        // Admin has all permissions
-        if (user.role === USER_ROLES.ADMIN) return true;
-
-        // Define role-based permissions
-        const rolePermissions = {
-            [USER_ROLES.COORDINATOR]: [
-                'view_all_students',
-                'view_all_grades',
-                'edit_grades',
-                'view_reports',
-                'manage_calendar',
-                'manage_reservations',
-                'send_announcements',
-            ],
-            [USER_ROLES.TEACHER]: [
-                'view_own_students',
-                'view_own_grades',
-                'edit_own_grades',
-                'view_own_reports',
-                'view_calendar',
-                'request_reservations',
-                'send_messages',
-            ],
-            [USER_ROLES.SECRETARY]: [
-                'view_all_students',
-                'edit_student_records',
-                'manage_enrollment',
-                'view_reports',
-                'manage_reservations',
-            ],
-        };
-
-        return rolePermissions[user.role]?.includes(permission) || false;
+        return hasPermissionForRole(user.role, permission);
     }, [user]);
 
     const hasRole = useCallback((roles) => {
         if (!user) return false;
-        const roleArray = Array.isArray(roles) ? roles : [roles];
-        return roleArray.includes(user.role);
+        return hasRoleUtil(user.role, roles);
     }, [user]);
 
     const value = {

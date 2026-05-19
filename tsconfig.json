@@ -17,6 +17,9 @@
     "noEmit": true,
     "module": "ESNext",
     "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "lib": [
       "esnext",
       "dom",
@@ -29,6 +32,7 @@
     "checkJs": false,
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "types": [
       "node",
