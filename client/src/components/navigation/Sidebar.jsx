@@ -53,7 +53,7 @@ function Sidebar() {
             {/* Sidebar */}
             <aside
                 className={cn(
-                    'fixed top-0 left-0 z-50 h-full bg-seculo-blue transition-all duration-300 ease-in-out',
+                    'fixed top-0 left-0 z-50 h-full bg-ciesa-blue transition-all duration-300 ease-in-out',
                     sidebarOpen ? 'w-64' : 'w-20',
                     'lg:translate-x-0',
                     sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -62,13 +62,13 @@ function Sidebar() {
                 {/* Logo */}
                 <div className="h-16 flex items-center justify-between px-4 border-b border-white/10">
                     <Link to="/certifications" className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-seculo-yellow flex items-center justify-center flex-shrink-0">
-                            <GraduationCap className="w-6 h-6 text-seculo-blue" />
+                        <div className="w-10 h-10 rounded-full bg-ciesa-yellow flex items-center justify-center flex-shrink-0">
+                            <GraduationCap className="w-6 h-6 text-ciesa-blue" />
                         </div>
                         {sidebarOpen && (
                             <div className="text-white">
                                 <p className="font-semibold text-sm">Portal do Aluno</p>
-                                <p className="text-xs text-blue-200">Colégio Século</p>
+                                <p className="text-xs text-blue-200">CIESA</p>
                             </div>
                         )}
                     </Link>
@@ -77,7 +77,7 @@ function Sidebar() {
                 {/* Toggle Button */}
                 <button
                     onClick={toggleSidebar}
-                    className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-seculo-yellow text-seculo-blue flex items-center justify-center shadow-md hover:scale-110 transition-transform hidden lg:flex"
+                    className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-ciesa-yellow text-ciesa-blue flex items-center justify-center shadow-md hover:scale-110 transition-transform hidden lg:flex"
                 >
                     {sidebarOpen ? (
                         <ChevronLeft className="w-4 h-4" />
@@ -107,7 +107,7 @@ function Sidebar() {
                                                 className={cn(
                                                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
                                                     'hover:bg-white/10',
-                                                    isActive && 'bg-white/10 border-l-3 border-seculo-yellow',
+                                                    isActive && 'bg-white/10 border-l-3 border-ciesa-yellow',
                                                     !sidebarOpen && 'justify-center'
                                                 )}
                                                 title={!sidebarOpen ? item.label : undefined}
@@ -115,7 +115,7 @@ function Sidebar() {
                                                 <Icon
                                                     className={cn(
                                                         'w-5 h-5 flex-shrink-0',
-                                                        isActive ? 'text-seculo-yellow' : 'text-blue-200'
+                                                        isActive ? 'text-ciesa-yellow' : 'text-blue-200'
                                                     )}
                                                 />
                                                 {sidebarOpen && (
@@ -144,8 +144,8 @@ function Sidebar() {
                             to="/settings"
                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors"
                         >
-                            <div className="w-9 h-9 rounded-full bg-seculo-yellow flex items-center justify-center">
-                                <span className="text-seculo-blue font-semibold text-sm">
+                            <div className="w-9 h-9 rounded-full bg-ciesa-yellow flex items-center justify-center">
+                                <span className="text-ciesa-blue font-semibold text-sm">
                                     {user.name?.charAt(0) || 'U'}
                                 </span>
                             </div>

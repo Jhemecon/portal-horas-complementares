@@ -25,11 +25,11 @@ function LoginPage() {
         <div className="animate-fade-in">
             {/* Mobile Logo */}
             <div className="lg:hidden text-center mb-8">
-                <div className="w-16 h-16 mx-auto rounded-full bg-seculo-blue flex items-center justify-center mb-4">
-                    <GraduationCap className="w-8 h-8 text-seculo-yellow" />
+                <div className="w-16 h-16 mx-auto rounded-full bg-ciesa-blue flex items-center justify-center mb-4">
+                    <GraduationCap className="w-8 h-8 text-ciesa-yellow" />
                 </div>
-                <h1 className="text-2xl font-bold text-seculo-blue">Portal do Professor</h1>
-                <p className="text-gray-500">Colégio Século</p>
+                <h1 className="text-2xl font-bold text-ciesa-blue">Portal do Professor</h1>
+                <p className="text-gray-500">CIESA</p>
             </div>
 
             <Card className="border-0 shadow-xl">
@@ -67,7 +67,7 @@ function LoginPage() {
                                 <Label htmlFor="password">Senha</Label>
                                 <Link
                                     to="/forgot-password"
-                                    className="text-sm text-seculo-blue hover:underline"
+                                    className="text-sm text-ciesa-blue hover:underline"
                                 >
                                     Esqueceu a senha?
                                 </Link>
@@ -117,8 +117,8 @@ function LoginPage() {
                     <div className="mt-6 text-center text-sm text-gray-500">
                         Problemas para acessar?{' '}
                         <a
-                            href="mailto:ti@seculo.com.br"
-                            className="text-seculo-blue hover:underline"
+                            href="mailto:ti@ciesa.com.br"
+                            className="text-ciesa-blue hover:underline"
                         >
                             Contate o suporte
                         </a>

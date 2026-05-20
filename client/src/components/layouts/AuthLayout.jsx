@@ -4,35 +4,35 @@ function AuthLayout() {
     return (
         <div className="min-h-screen flex">
             {/* Left Side - Branding */}
-            <div className="hidden lg:flex lg:w-1/2 bg-seculo-blue items-center justify-center p-12">
+            <div className="hidden lg:flex lg:w-1/2 bg-ciesa-blue items-center justify-center p-12">
                 <div className="max-w-md text-center">
                     <div className="mb-8">
-                        <div className="w-24 h-24 mx-auto rounded-full bg-seculo-yellow flex items-center justify-center">
-                            <span className="text-seculo-blue font-bold text-3xl">CS</span>
+                        <div className="w-24 h-24 mx-auto rounded-full bg-ciesa-yellow flex items-center justify-center">
+                            <span className="text-ciesa-blue font-bold text-3xl">CS</span>
                         </div>
                     </div>
                     <h1 className="text-4xl font-bold text-white mb-4">
                         Portal do Professor
                     </h1>
                     <p className="text-blue-200 text-lg">
-                        Colégio Século - Sistema de Gestão Educacional
+                        CIESA - Sistema de Gestão Educacional
                     </p>
                     <div className="mt-12 space-y-4 text-left">
                         <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-seculo-yellow/20 flex items-center justify-center flex-shrink-0">
-                                <span className="text-seculo-yellow text-sm">✓</span>
+                            <div className="w-8 h-8 rounded-full bg-ciesa-yellow/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-ciesa-yellow text-sm">✓</span>   
                             </div>
                             <p className="text-blue-100">Gestão completa de notas e frequência</p>
                         </div>
                         <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-seculo-yellow/20 flex items-center justify-center flex-shrink-0">
-                                <span className="text-seculo-yellow text-sm">✓</span>
+                            <div className="w-8 h-8 rounded-full bg-ciesa-yellow/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-ciesa-yellow text-sm">✓</span>
                             </div>
                             <p className="text-blue-100">Calendário de avaliações integrado</p>
                         </div>
                         <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-seculo-yellow/20 flex items-center justify-center flex-shrink-0">
-                                <span className="text-seculo-yellow text-sm">✓</span>
+                            <div className="w-8 h-8 rounded-full bg-ciesa-yellow/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-ciesa-yellow text-sm">✓</span>
                             </div>
                             <p className="text-blue-100">Comunicação direta com alunos e responsáveis</p>
                         </div>

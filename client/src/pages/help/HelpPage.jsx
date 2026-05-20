@@ -95,7 +95,7 @@ const HelpPage = () => {
         {
             icon: Mail,
             title: 'E-mail',
-            value: 'horascomplementares@seculo.edu.br',
+            value: 'horascomplementares@ciesa.com.br',
             description: 'Para dúvidas gerais e suporte técnico',
         },
         {

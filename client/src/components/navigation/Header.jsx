@@ -49,7 +49,7 @@ function Header() {
                     {/* Search */}
                     <div className={cn(
                         'hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 transition-all',
-                        searchOpen && 'ring-2 ring-seculo-blue'
+                        searchOpen && 'ring-2 ring-ciesa-blue'
                     )}>
                         <Search className="h-4 w-4 text-gray-400" />
                         <input
@@ -84,7 +84,7 @@ function Header() {
                             <Button variant="ghost" size="icon" className="relative">
                                 <Bell className="h-5 w-5" />
                                 {unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-seculo-yellow text-seculo-blue text-xs font-bold rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-ciesa-yellow text-ciesa-blue text-xs font-bold rounded-full flex items-center justify-center">
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </span>
                                 )}
@@ -123,7 +123,7 @@ function Header() {
                                 <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem asChild>
-                                        <Link to="/notifications" className="w-full text-center text-sm text-seculo-blue">
+                                        <Link to="/notifications" className="w-full text-center text-sm text-ciesa-blue">
                                             Ver todas
                                         </Link>
                                     </DropdownMenuItem>
@@ -136,7 +136,7 @@ function Header() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="flex items-center gap-2 px-2">
-                                <div className="w-8 h-8 rounded-full bg-seculo-blue flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-ciesa-blue flex items-center justify-center">
                                     <span className="text-white text-sm font-medium">
                                         {user?.name?.charAt(0) || 'U'}
                                     </span>

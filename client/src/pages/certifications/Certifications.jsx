@@ -216,7 +216,7 @@ function CertificationsPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Award className="h-7 w-7 text-seculo-yellow" />
+                        <Award className="h-7 w-7 text-ciesa-yellow" />
                         Horas Complementares
                     </h1>
                     <p className="text-gray-500 dark:text-gray-300 mt-1">
@@ -305,10 +305,10 @@ function CertificationsPage() {
 
             {/* ── Formulário de novo certificado ── */}
             {showForm && (
-                <Card className="border-2 border-seculo-yellow/50 dark:border-seculo-yellow/30 animate-fade-in">
+                <Card className="border-2 border-ciesa-yellow/50 dark:border-ciesa-yellow/30 animate-fade-in">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            <Plus className="h-5 w-5 text-seculo-yellow" />
+                            <Plus className="h-5 w-5 text-ciesa-yellow" />
                             Cadastrar Novo Certificado
                         </CardTitle>
                         <CardDescription>
@@ -509,7 +509,7 @@ function CertificationsPage() {
                                 key={cert.id}
                                 className={cn(
                                     'card-hover transition-all duration-200',
-                                    isExpanded && 'ring-2 ring-seculo-blue/20 dark:ring-seculo-yellow/20'
+                                    isExpanded && 'ring-2 ring-ciesa-blue/20 dark:ring-ciesa-yellow/20'
                                 )}
                             >
                                 <CardContent className="p-0">
