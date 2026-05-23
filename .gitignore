@@ -107,3 +107,6 @@ logs/
 
 # Imagens hardcoded (usar CDN/S3)
 temp_images/
+
+# Ignorar arquivos de upload locais
+server/uploads/*
