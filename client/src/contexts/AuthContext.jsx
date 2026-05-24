@@ -1,95 +1,62 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { USER_ROLES, hasPermissionForRole, hasRole as hasRoleUtil } from '@/lib/auth';
+import { hasPermissionForRole, hasRole as hasRoleUtil } from '@/lib/auth';
 
 const AuthContext = createContext(null);
 
+// Coloque aqui o endereço onde o seu back-end está a rodar
+const API_URL = 'http://localhost:5000/api'; 
 
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState({ name: "Admin Teste", role: "admin" });
-    const [loading, setLoading] = useState(false);
+    // 1. Iniciamos sem nenhum utilizador logado e com o loading a true para verificar o token
+    const [user, setUser] = useState(null); 
+    const [loading, setLoading] = useState(true); 
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // Temporarily disabled auth check for testing
-    // useEffect(() => {
-    //     const checkAuth = async () => {
-    //         try {
-    //             const token = localStorage.getItem('auth_token');
-    //             const savedUser = localStorage.getItem('user_data');
+    // 2. Este useEffect recupera a sessão (bate na rota /api/users/me que criámos!)
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                setLoading(false);
+                return;
+            }
 
-    //             // Se tem dados de usuário salvos (mock), usa eles
-    //             if (token && savedUser) {
-    //                 setUser(JSON.parse(savedUser));
-    //                 setLoading(false);
-    //                 return;
-    //             }
+            try {
+                // Chama a nossa rota protegida que exige o token
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
-    //             if (token) {
-    //                 const response = await fetch('/api/auth/me', {
-    //                     headers: {
-    //                         Authorization: `Bearer ${token}`,
-    //                     },
-    //                 });
+                if (response.ok) {
+                    const userData = await response.json();
+                    setUser(userData);
+                } else {
+                    // Se o token expirou ou é inválido, limpa tudo
+                    localStorage.removeItem('auth_token');
+                    setUser(null);
+                }
+            } catch (err) {
+                console.error('Falha ao verificar autenticação:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    //                 if (response.ok) {
-    //                     const userData = await response.json();
-    //                     setUser(userData);
-    //                 } else {
-    //                     localStorage.removeItem('auth_token');
-    //                     localStorage.removeItem('user_data');
-    //                 }
-    //             }
-    //         } catch (err) {
-    //             console.error('Auth check failed:', err);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
+        checkAuth();
+    }, []);
 
-    //     checkAuth();
-    // }, []);
-
+    // 3. A função de Login REAL conectada ao seu banco de dados
     const login = useCallback(async (email, password) => {
         setLoading(true);
         setError(null);
 
         try {
-            // Mock login para desenvolvimento
-            // Credenciais: admin / admin123
-            if (email === 'admin' && password === 'admin123') {
-                const mockUser = {
-                    id: 1,
-                    name: 'Administrador',
-                    email: 'admin@seculo.com.br',
-                    role: USER_ROLES.ADMIN,
-                    avatar: null,
-                };
-                localStorage.setItem('auth_token', 'mock_token_admin');
-                localStorage.setItem('user_data', JSON.stringify(mockUser));
-                setUser(mockUser);
-                navigate('/dashboard');
-                return { success: true };
-            }
-
-            // Mock para professor
-            if (email === 'professor' && password === 'prof123') {
-                const mockUser = {
-                    id: 2,
-                    name: 'João Silva',
-                    email: 'joao.silva@seculo.com.br',
-                    role: USER_ROLES.TEACHER,
-                    avatar: null,
-                };
-                localStorage.setItem('auth_token', 'mock_token_teacher');
-                localStorage.setItem('user_data', JSON.stringify(mockUser));
-                setUser(mockUser);
-                navigate('/dashboard');
-                return { success: true };
-            }
-
-            // Tentar API real (para quando o backend estiver pronto)
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_URL}/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,19 +66,20 @@ export function AuthProvider({ children }) {
 
             const data = await response.json();
 
+            // Se o express devolver um erro (ex: credenciais inválidas)
             if (!response.ok) {
-                throw new Error(data.message || 'Erro ao fazer login');
+                throw new Error(data.error || 'Erro ao fazer login');
             }
 
+            // Sucesso! Guardamos o token e os dados no navegador
             localStorage.setItem('auth_token', data.token);
             setUser(data.user);
-            navigate('/dashboard');
+            navigate('/dashboard'); // Redireciona para o painel principal
+            
             return { success: true };
         } catch (err) {
-            // Se falhou na API, mostrar erro de credenciais inválidas
-            const errorMsg = 'Credenciais inválidas. Use: admin / admin123';
-            setError(errorMsg);
-            return { success: false, error: errorMsg };
+            setError(err.message);
+            return { success: false, error: err.message };
         } finally {
             setLoading(false);
         }
@@ -119,7 +87,6 @@ export function AuthProvider({ children }) {
 
     const logout = useCallback(() => {
         localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
         setUser(null);
         navigate('/login');
     }, [navigate]);
@@ -156,7 +123,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error('useAuth deve ser usado dentro de um AuthProvider');
     }
     return context;
 }

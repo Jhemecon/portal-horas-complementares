@@ -1,7 +1,22 @@
 import { Response } from "express";
+import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { submissions } from "../db/schema.js";
 import { AuthRequest } from "../middlewares/auth.js";
+
+// --- NOVA FUNÇÃO: Buscar os certificados do aluno logado ---
+export const getMySubmissions = async (req: AuthRequest, res: Response) => {
+  try {
+    const studentId = req.user.id;
+    // Puxa do banco apenas as submissões deste aluno específico
+    const mySubmissions = await db.select().from(submissions).where(eq(submissions.studentId, studentId));
+    
+    res.json(mySubmissions);
+  } catch (error) {
+    console.error("Erro ao buscar submissões:", error);
+    res.status(500).json({ error: "Erro ao buscar certificados." });
+  }
+};
 
 export const createSubmission = async (req: AuthRequest, res: Response) => {
   try {

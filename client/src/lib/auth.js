@@ -1,4 +1,5 @@
 export const USER_ROLES = {
+    STUDENT: 'student', // <-- Adicionado o cargo de estudante!
     TEACHER: 'teacher',
     COORDINATOR: 'coordinator',
     SECRETARY: 'secretary',
@@ -6,6 +7,7 @@ export const USER_ROLES = {
 };
 
 export const ROLE_LABELS = {
+    [USER_ROLES.STUDENT]: 'Estudante',
     [USER_ROLES.TEACHER]: 'Professor',
     [USER_ROLES.COORDINATOR]: 'Coordenador',
     [USER_ROLES.SECRETARY]: 'Secretaria',
@@ -13,30 +15,18 @@ export const ROLE_LABELS = {
 };
 
 export const ROLE_PERMISSIONS = {
+    [USER_ROLES.ADMIN]: [
+        // Admin pode tudo
+    ],
     [USER_ROLES.COORDINATOR]: [
         'view_all_students',
-        'view_all_grades',
-        'edit_grades',
-        'view_reports',
-        'manage_calendar',
-        'manage_reservations',
-        'send_announcements',
+        'validate_certificates', // Para validar as horas
+        'manage_activities',
     ],
-    [USER_ROLES.TEACHER]: [
-        'view_own_students',
-        'view_own_grades',
-        'edit_own_grades',
-        'view_own_reports',
-        'view_calendar',
-        'request_reservations',
-        'send_messages',
-    ],
-    [USER_ROLES.SECRETARY]: [
-        'view_all_students',
-        'edit_student_records',
-        'manage_enrollment',
-        'view_reports',
-        'manage_reservations',
+    [USER_ROLES.STUDENT]: [
+        'view_own_dashboard',
+        'submit_certificates', // Para enviar horas
+        'view_own_submissions'
     ],
 };
 

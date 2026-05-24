@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ import {
     Heart,
     X,
     Image,
+    Loader2
 } from 'lucide-react';
 
 // ── Categorias de atividades complementares ───────────────────────────
@@ -45,85 +46,18 @@ const CATEGORIES = [
     { value: 'outro', label: 'Outros', icon: FileText, color: 'bg-gray-500' },
 ];
 
+// Atualizado para bater com os status que vêm do banco de dados (inglês)
 const STATUS_MAP = {
-    pendente: { label: 'Pendente', icon: Clock, color: 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400' },
-    aprovado: { label: 'Aprovado', icon: CheckCircle2, color: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' },
-    rejeitado: { label: 'Rejeitado', icon: XCircle, color: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400' },
-    revisao: { label: 'Em Revisão', icon: AlertCircle, color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400' },
+    pending: { label: 'Pendente', icon: Clock, color: 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400' },
+    approved: { label: 'Aprovado', icon: CheckCircle2, color: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400' },
+    rejected: { label: 'Rejeitado', icon: XCircle, color: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400' },
+    review: { label: 'Em Revisão', icon: AlertCircle, color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400' },
 };
 
-// ── Mock data ─────────────────────────────────────────────────────────
-const MOCK_CERTIFICATES = [
-    {
-        id: 1,
-        title: 'Curso de React Avançado',
-        institution: 'Alura',
-        category: 'curso',
-        hours: 40,
-        approvedHours: 40,
-        date: '2025-11-15',
-        status: 'aprovado',
-        fileName: 'certificado_react_avancado.pdf',
-        fileSize: '1.2 MB',
-        description: 'Curso completo de React com hooks, context API, performance e testes.',
-    },
-    {
-        id: 2,
-        title: 'Seminário de Inteligência Artificial na Educação',
-        institution: 'USP',
-        category: 'palestra',
-        hours: 8,
-        approvedHours: 8,
-        date: '2025-12-02',
-        status: 'aprovado',
-        fileName: 'certificado_ia_educacao.pdf',
-        fileSize: '850 KB',
-        description: 'Seminário sobre aplicações de IA em ambientes educacionais.',
-    },
-    {
-        id: 3,
-        title: 'Workshop de Metodologias Ativas',
-        institution: 'UNICAMP',
-        category: 'workshop',
-        hours: 16,
-        approvedHours: null,
-        date: '2026-01-20',
-        status: 'pendente',
-        fileName: 'certificado_metodologias.pdf',
-        fileSize: '2.1 MB',
-        description: 'Workshop prático sobre metodologias ativas no ensino fundamental e médio.',
-    },
-    {
-        id: 4,
-        title: 'Programa de Extensão em Educação Inclusiva',
-        institution: 'UNESP',
-        category: 'extensao',
-        hours: 60,
-        approvedHours: null,
-        date: '2026-02-05',
-        status: 'revisao',
-        fileName: 'certificado_extensao_inclusiva.pdf',
-        fileSize: '3.4 MB',
-        description: 'Programa de extensão focado em práticas de educação inclusiva para alunos com necessidades especiais.',
-    },
-    {
-        id: 5,
-        title: 'Ação Voluntária - Reforço Escolar Comunitário',
-        institution: 'ONG Educação para Todos',
-        category: 'voluntariado',
-        hours: 20,
-        approvedHours: null,
-        date: '2025-10-10',
-        status: 'rejeitado',
-        fileName: 'declaracao_voluntariado.pdf',
-        fileSize: '500 KB',
-        description: 'Atividade voluntária de reforço escolar em comunidades carentes.',
-    },
-];
-
-// ── Componente principal ──────────────────────────────────────────────
 function CertificationsPage() {
-    const [certificates, setCertificates] = useState(MOCK_CERTIFICATES);
+    const [certificates, setCertificates] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('todos');
     const [filterCategory, setFilterCategory] = useState('todos');
@@ -131,8 +65,35 @@ function CertificationsPage() {
     const [expandedCard, setExpandedCard] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
     const [previewCert, setPreviewCert] = useState(null);
-    const fileInputRef = useRef(null);
     const { addNotification } = useApp();
+
+    const API_URL = 'http://localhost:5000/api';
+
+    // ── BUSCAR DADOS DO BANCO AO CARREGAR ──
+    useEffect(() => {
+        const fetchCertificates = async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(`${API_URL}/submissions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setCertificates(data);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar certificados:", error);
+                toast.error("Não foi possível carregar os certificados.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCertificates();
+    }, []);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -145,70 +106,107 @@ function CertificationsPage() {
         file: null,
     });
 
-    // ── Cálculos ──
-    const totalHoursSubmitted = certificates.reduce((acc, c) => acc + c.hours, 0);
-    const totalHoursApproved = certificates.filter(c => c.status === 'aprovado').reduce((acc, c) => acc + (c.approvedHours || 0), 0);
-    const totalPending = certificates.filter(c => c.status === 'pendente' || c.status === 'revisao').length;
+    // ── Cálculos (Atualizados para as chaves do banco de dados) ──
+    const totalHoursSubmitted = certificates.reduce((acc, c) => acc + (c.hoursClaimed || 0), 0);
+    const totalHoursApproved = certificates.filter(c => c.status === 'approved').reduce((acc, c) => acc + (c.hoursApproved || 0), 0);
+    const totalPending = certificates.filter(c => c.status === 'pending' || c.status === 'review').length;
     const requiredHours = 200;
     const progressPercent = Math.min((totalHoursApproved / requiredHours) * 100, 100);
 
-    // Cálculo por categoria
     const categoryProgress = CATEGORIES.map(cat => {
         const completed = certificates
-            .filter(c => c.category === cat.value && c.status === 'aprovado')
-            .reduce((acc, c) => acc + (c.approvedHours || 0), 0);
-        const required = 50; // Exemplo: 50h por categoria
+            .filter(c => (c.category || 'curso') === cat.value && c.status === 'approved')
+            .reduce((acc, c) => acc + (c.hoursApproved || 0), 0);
         return {
-            name: cat.label.split(' / ')[0],
+            name: cat.label.split(' / '),
             completed,
-            required,
+            required: 50,
         };
     });
 
     // ── Filtros ──
     const filtered = certificates.filter((c) => {
-        const matchSearch =
-            c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.institution.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchSearch = c.title?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchStatus = filterStatus === 'todos' || c.status === filterStatus;
-        const matchCategory = filterCategory === 'todos' || c.category === filterCategory;
-        return matchSearch && matchStatus && matchCategory;
+        return matchSearch && matchStatus;
     });
 
-    // ── Handlers ──
-    const handleSubmit = (e) => {
+    // ── ENVIAR PARA O BANCO DE DADOS ──
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const newCert = {
-            id: Date.now(),
-            ...formData,
-            hours: Number(formData.hours),
-            approvedHours: null,
-            status: 'pendente',
-            fileName: formData.file?.name || 'certificado.pdf',
-            fileSize: formData.file ? `${(formData.file.size / 1024 / 1024).toFixed(1)} MB` : '0 KB',
-        };
-        setCertificates((prev) => [newCert, ...prev]);
-        setFormData({ title: '', institution: '', category: 'curso', hours: '', date: '', description: '', file: null });
-        setShowForm(false);
+        
+        if (!formData.file) {
+            toast.error("Por favor, anexe o arquivo do certificado.");
+            return;
+        }
 
-        // Notificação de sucesso
-        toast.success('Certificado enviado com sucesso!', {
-            description: 'Sua solicitação será analisada em breve.',
-        });
+        setSubmitting(true);
 
-        // Adicionar notificação
-        addNotification({
-            title: 'Certificado Enviado',
-            message: `Seu certificado "${newCert.title}" foi enviado e está aguardando análise.`,
-            type: 'info',
-        });
+        try {
+            const token = localStorage.getItem('auth_token');
+            const submitData = new FormData();
+            
+            submitData.append('title', formData.title);
+            submitData.append('hoursClaimed', formData.hours);
+            // ID da atividade de testes que você criou no banco!
+            submitData.append('activityId', '6de83a9e-9e70-465a-b422-b4db1ee30ed3'); 
+            submitData.append('certificate', formData.file);
+
+            const response = await fetch(`${API_URL}/submissions`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: submitData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                // Adiciona o novo certificado retornado do banco à lista atual da tela
+                setCertificates((prev) => [result.submission, ...prev]);
+                
+                // Limpa o formulário
+                setFormData({ title: '', institution: '', category: 'curso', hours: '', date: '', description: '', file: null });
+                setShowForm(false);
+
+                toast.success('Certificado enviado com sucesso!', {
+                    description: 'Sua solicitação será analisada em breve.',
+                });
+
+                addNotification({
+                    title: 'Certificado Enviado',
+                    message: `Seu certificado "${result.submission.title}" foi enviado e está aguardando análise.`,
+                    type: 'info',
+                });
+            } else {
+                const errData = await response.json();
+                toast.error(`Erro: ${errData.error}`);
+            }
+        } catch (error) {
+            console.error("Erro no envio:", error);
+            toast.error("Erro de conexão com o servidor.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleDelete = (id) => {
+        // Num projeto real, faríamos um DELETE /api/submissions/:id aqui
         setCertificates((prev) => prev.filter((c) => c.id !== id));
+        toast.info("Certificado removido visualmente.");
     };
 
-    const getCategoryInfo = (value) => CATEGORIES.find((c) => c.value === value) || CATEGORIES[6];
+    const getCategoryInfo = (value) => CATEGORIES.find((c) => c.value === value) || CATEGORIES;
+
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <Loader2 className="h-10 w-10 animate-spin text-ciesa-blue" />
+                <p className="mt-4 text-gray-500">Carregando seus certificados...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -231,7 +229,6 @@ function CertificationsPage() {
 
             {/* ── Stats Cards ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Horas Aprovadas */}
                 <Card className="card-hover">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -247,7 +244,6 @@ function CertificationsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Horas Enviadas */}
                 <Card className="card-hover">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -263,7 +259,6 @@ function CertificationsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Certificados */}
                 <Card className="card-hover">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -279,7 +274,6 @@ function CertificationsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Pendentes */}
                 <Card className="card-hover">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -318,7 +312,6 @@ function CertificationsPage() {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Título */}
                                 <div className="md:col-span-2">
                                     <Label htmlFor="title">Título da Atividade *</Label>
                                     <Input
@@ -330,23 +323,18 @@ function CertificationsPage() {
                                         className="mt-1.5"
                                     />
                                 </div>
-
-                                {/* Instituição */}
                                 <div>
-                                    <Label htmlFor="institution">Instituição Emissora *</Label>
+                                    <Label htmlFor="institution">Instituição Emissora</Label>
                                     <Input
                                         id="institution"
                                         placeholder="Ex: Alura, USP, Coursera"
                                         value={formData.institution}
                                         onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                                        required
                                         className="mt-1.5"
                                     />
                                 </div>
-
-                                {/* Categoria */}
                                 <div>
-                                    <Label htmlFor="category">Categoria *</Label>
+                                    <Label htmlFor="category">Categoria</Label>
                                     <select
                                         id="category"
                                         value={formData.category}
@@ -354,14 +342,10 @@ function CertificationsPage() {
                                         className="mt-1.5 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#022b56] dark:text-gray-100"
                                     >
                                         {CATEGORIES.map((cat) => (
-                                            <option key={cat.value} value={cat.value}>
-                                                {cat.label}
-                                            </option>
+                                            <option key={cat.value} value={cat.value}>{cat.label}</option>
                                         ))}
                                     </select>
                                 </div>
-
-                                {/* Carga horária */}
                                 <div>
                                     <Label htmlFor="hours">Carga Horária (horas) *</Label>
                                     <Input
@@ -375,34 +359,6 @@ function CertificationsPage() {
                                         className="mt-1.5"
                                     />
                                 </div>
-
-                                {/* Data de conclusão */}
-                                <div>
-                                    <Label htmlFor="date">Data de Conclusão *</Label>
-                                    <Input
-                                        id="date"
-                                        type="date"
-                                        value={formData.date}
-                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                        required
-                                        className="mt-1.5"
-                                    />
-                                </div>
-
-                                {/* Descrição */}
-                                <div className="md:col-span-2">
-                                    <Label htmlFor="description">Descrição da Atividade</Label>
-                                    <textarea
-                                        id="description"
-                                        rows={3}
-                                        placeholder="Descreva brevemente o conteúdo e aprendizados da atividade..."
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="mt-1.5 flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#022b56] placeholder:text-muted-foreground resize-none dark:text-gray-100"
-                                    />
-                                </div>
-
-                                {/* Upload */}
                                 <div className="md:col-span-2">
                                     <FileUpload
                                         onFileSelect={(file) => setFormData({ ...formData, file })}
@@ -411,15 +367,13 @@ function CertificationsPage() {
                                     />
                                 </div>
                             </div>
-
-                            {/* Actions */}
                             <div className="flex items-center justify-end gap-3 pt-2">
-                                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                                <Button type="button" variant="outline" onClick={() => setShowForm(false)} disabled={submitting}>
                                     Cancelar
                                 </Button>
-                                <Button type="submit">
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    Enviar Certificado
+                                <Button type="submit" disabled={submitting}>
+                                    {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                                    {submitting ? 'Enviando...' : 'Enviar Certificado'}
                                 </Button>
                             </div>
                         </form>
@@ -432,53 +386,13 @@ function CertificationsPage() {
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                        placeholder="Buscar por título ou instituição..."
+                        placeholder="Buscar por título..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-9"
                     />
                 </div>
-                <Button
-                    variant="outline"
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="shrink-0"
-                >
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtros
-                    {showFilters ? <ChevronUp className="h-4 w-4 ml-1" /> : <ChevronDown className="h-4 w-4 ml-1" />}
-                </Button>
             </div>
-
-            {showFilters && (
-                <div className="flex flex-col sm:flex-row gap-3 animate-fade-in">
-                    <div className="flex-1">
-                        <Label className="text-xs text-gray-500 mb-1 block">Status</Label>
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#022b56] dark:text-gray-100"
-                        >
-                            <option value="todos">Todos os status</option>
-                            {Object.entries(STATUS_MAP).map(([key, val]) => (
-                                <option key={key} value={key}>{val.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex-1">
-                        <Label className="text-xs text-gray-500 mb-1 block">Categoria</Label>
-                        <select
-                            value={filterCategory}
-                            onChange={(e) => setFilterCategory(e.target.value)}
-                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#022b56] dark:text-gray-100"
-                        >
-                            <option value="todos">Todas as categorias</option>
-                            {CATEGORIES.map((cat) => (
-                                <option key={cat.value} value={cat.value}>{cat.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            )}
 
             {/* ── Lista de certificados ── */}
             {filtered.length === 0 ? (
@@ -489,146 +403,74 @@ function CertificationsPage() {
                         </div>
                         <p className="font-medium text-gray-700 dark:text-gray-300">Nenhum certificado encontrado</p>
                         <p className="text-sm text-gray-500 dark:text-gray-300 mt-1">
-                            {searchQuery || filterStatus !== 'todos' || filterCategory !== 'todos'
-                                ? 'Tente ajustar os filtros de busca.'
-                                : 'Cadastre seu primeiro certificado clicando no botão acima.'}
+                            Cadastre seu primeiro certificado clicando no botão acima.
                         </p>
                     </CardContent>
                 </Card>
             ) : (
                 <div className="space-y-3">
                     {filtered.map((cert) => {
-                        const catInfo = getCategoryInfo(cert.category);
+                        const catInfo = getCategoryInfo(cert.category || 'curso');
                         const CatIcon = catInfo.icon;
-                        const statusInfo = STATUS_MAP[cert.status];
+                        const statusInfo = STATUS_MAP[cert.status] || STATUS_MAP.pending;
                         const StatusIcon = statusInfo.icon;
                         const isExpanded = expandedCard === cert.id;
 
+                        // Extrair o nome original do arquivo da URL (removendo o timestamp e a pasta)
+                        const rawFileName = cert.certificateUrl ? cert.certificateUrl.split('-').slice(2).join('-') : 'Documento';
+
                         return (
-                            <Card
-                                key={cert.id}
-                                className={cn(
-                                    'card-hover transition-all duration-200',
-                                    isExpanded && 'ring-2 ring-ciesa-blue/20 dark:ring-ciesa-yellow/20'
-                                )}
-                            >
+                            <Card key={cert.id} className={cn('card-hover transition-all duration-200', isExpanded && 'ring-2 ring-ciesa-blue/20 dark:ring-ciesa-yellow/20')}>
                                 <CardContent className="p-0">
-                                    {/* Main row */}
-                                    <div
-                                        className="flex items-center gap-4 p-4 cursor-pointer"
-                                        onClick={() => setExpandedCard(isExpanded ? null : cert.id)}
-                                    >
-                                        {/* Category icon */}
+                                    <div className="flex items-center gap-4 p-4 cursor-pointer" onClick={() => setExpandedCard(isExpanded ? null : cert.id)}>
                                         <div className={cn('p-2.5 rounded-lg shrink-0', catInfo.color)}>
                                             <CatIcon className="h-5 w-5 text-white" />
                                         </div>
-
-                                        {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <p className="font-semibold text-gray-900 dark:text-white truncate">
-                                                    {cert.title}
-                                                </p>
+                                                <p className="font-semibold text-gray-900 dark:text-white truncate">{cert.title}</p>
                                             </div>
                                             <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-300 flex-wrap">
-                                                <span>{cert.institution}</span>
-                                                <span className="hidden sm:inline">•</span>
-                                                <span className="hidden sm:inline">{catInfo.label}</span>
+                                                <span>{catInfo.label}</span>
                                                 <span>•</span>
-                                                <span className="font-medium">{cert.hours}h</span>
+                                                <span className="font-medium">{cert.hoursClaimed}h</span>
                                             </div>
                                         </div>
-
-                                        {/* Status badge */}
-                                        <div className={cn(
-                                            'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium shrink-0',
-                                            statusInfo.color
-                                        )}>
+                                        <div className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium shrink-0', statusInfo.color)}>
                                             <StatusIcon className="h-3.5 w-3.5" />
                                             <span className="hidden sm:inline">{statusInfo.label}</span>
                                         </div>
-
-                                        {/* Expand toggle */}
                                         <div className="shrink-0 text-gray-400">
                                             {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                                         </div>
                                     </div>
-
-                                    {/* Expanded details */}
                                     {isExpanded && (
                                         <div className="border-t px-4 pb-4 pt-3 space-y-4 animate-fade-in">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Instituição</p>
-                                                    <p className="text-sm font-medium mt-0.5">{cert.institution}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Categoria</p>
-                                                    <p className="text-sm font-medium mt-0.5 flex items-center gap-1.5">
-                                                        <CatIcon className="h-3.5 w-3.5" />
-                                                        {catInfo.label}
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wider">Data de Envio</p>
+                                                    <p className="text-sm font-medium mt-0.5">
+                                                        {new Date(cert.createdAt).toLocaleDateString('pt-BR')}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data de Conclusão</p>
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wider">Horas Aprovadas</p>
                                                     <p className="text-sm font-medium mt-0.5">
-                                                        {new Date(cert.date).toLocaleDateString('pt-BR')}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Horas Aprovadas</p>
-                                                    <p className="text-sm font-medium mt-0.5">
-                                                        {cert.approvedHours !== null ? `${cert.approvedHours}h` : '—'}
+                                                        {cert.hoursApproved !== null ? `${cert.hoursApproved}h` : 'Em análise'}
                                                     </p>
                                                 </div>
                                             </div>
-
-                                            {cert.description && (
-                                                <div>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-300 uppercase tracking-wider">Descrição</p>
-                                                    <p className="text-sm mt-0.5 text-gray-700 dark:text-gray-300">{cert.description}</p>
-                                                </div>
-                                            )}
-
-                                            {/* File info & actions */}
                                             <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                                 <div className="flex items-center gap-2 min-w-0">
                                                     <FileText className="h-4 w-4 text-gray-500 shrink-0" />
-                                                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{cert.fileName}</span>
-                                                    <span className="text-xs text-gray-400 shrink-0">{cert.fileSize}</span>
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{rawFileName}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        title="Visualizar"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setPreviewCert(cert);
-                                                        }}
-                                                    >
+                                                    <Button variant="ghost" size="icon" title="Visualizar" onClick={(e) => { e.stopPropagation(); setPreviewCert(cert); }}>
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" title="Download">
-                                                        <Download className="h-4 w-4" />
-                                                    </Button>
-                                                    {(cert.status === 'pendente' || cert.status === 'rejeitado') && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            title="Excluir"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDelete(cert.id);
-                                                            }}
-                                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
                                                 </div>
                                             </div>
-
                                         </div>
                                     )}
                                 </CardContent>
@@ -638,35 +480,22 @@ function CertificationsPage() {
                 </div>
             )}
 
-            {/* ── Preview Modal ── */}
             {previewCert && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fade-in" onClick={() => setPreviewCert(null)}>
-                    <div
-                        className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between p-4 border-b">
                             <div>
-                                <h3 className="font-semibold text-gray-900 dark:text-white">{previewCert.title}</h3>
-                                <p className="text-sm text-gray-500">{previewCert.fileName}</p>
+                                <h3 className="font-semibold">{previewCert.title}</h3>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setPreviewCert(null)}>
                                 <X className="h-5 w-5" />
                             </Button>
                         </div>
-                        <div className="p-8 flex flex-col items-center justify-center min-h-[400px] bg-gray-50 dark:bg-gray-800">
-                            <Image className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
-                            <p className="text-sm text-gray-500 dark:text-gray-300">Pré-visualização do certificado</p>
-                            <p className="text-xs text-gray-400 mt-1">{previewCert.fileName} • {previewCert.fileSize}</p>
-                        </div>
-                        <div className="flex items-center justify-end gap-2 p-4 border-t dark:border-gray-700">
-                            <Button variant="outline" onClick={() => setPreviewCert(null)}>
-                                Fechar
-                            </Button>
-                            <Button>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                            </Button>
+                        <div className="p-8 flex flex-col items-center justify-center min-h-[400px] bg-gray-50">
+                            <Image className="h-16 w-16 text-gray-300 mb-4" />
+                            <p className="text-sm text-gray-500">
+                                Para visualizar o arquivo original, <a href={`http://localhost:5000${previewCert.certificateUrl}`} target="_blank" rel="noreferrer" className="text-ciesa-blue underline">clique aqui</a>.
+                            </p>
                         </div>
                     </div>
                 </div>
