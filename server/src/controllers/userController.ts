@@ -10,9 +10,19 @@ import { AuthRequest } from "../middlewares/auth.js";
 // 1. Buscar todos os usuários
 export const getAllUsers = async (_req: Request, res: Response) => {
   try {
-    const allUsers = await db.select().from(users);
+    const allUsers = await db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      registrationNumber: users.registrationNumber,
+      role: users.role,
+      courseId: users.courseId,
+      createdAt: users.createdAt,
+    }).from(users);
+
     res.json(allUsers);
   } catch (error) {
+    console.error("Erro ao buscar utilizadores:", error);
     res.status(500).json({ error: "Erro interno ao buscar utilizadores" });
   }
 };
@@ -99,14 +109,15 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       email: users.email,
       registrationNumber: users.registrationNumber,
       role: users.role,
-      courseId: users.courseId
+      courseId: users.courseId,
+      createdAt: users.createdAt,
     }).from(users).where(eq(users.id, userId));
 
     if (userResult.length === 0) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    res.json(userResult);
+    res.json(userResult[0]);
   } catch (error) {
     res.status(500).json({ error: "Erro interno" });
   }

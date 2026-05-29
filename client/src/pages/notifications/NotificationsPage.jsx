@@ -29,8 +29,47 @@ const STATUS_COLORS = {
 };
 
 export default function NotificationsPage() {
-    const { notifications, markNotificationRead, markAllNotificationsRead, clearNotifications, unreadCount } = useApp();
+    const { notifications, setNotifications, markNotificationRead, markAllNotificationsRead, clearNotifications, unreadCount } = useApp();
     const [filter, setFilter] = useState('all'); // all, unread, read
+
+    useEffect(() => {
+        const loadNotifications = async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('http://localhost:5000/api/submissions', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const submissions = await response.json();
+                const realNotifications = submissions.map((item) => ({
+                    id: `submission-${item.id}`,
+                    title: item.status === 'approved'
+                        ? 'Atividade aprovada'
+                        : item.status === 'rejected'
+                            ? 'Atividade rejeitada'
+                            : 'Atividade em análise',
+                    message: item.status === 'approved'
+                        ? `Seu certificado "${item.title}" foi aprovado com ${item.hoursApproved ?? item.hoursClaimed}h.`
+                        : item.status === 'rejected'
+                            ? `Seu certificado "${item.title}" foi rejeitado${item.rejectionReason ? `: ${item.rejectionReason}` : '.'}`
+                            : `Seu certificado "${item.title}" está aguardando análise.`,
+                    type: item.status === 'approved' ? 'success' : item.status === 'rejected' ? 'error' : 'warning',
+                    createdAt: item.updatedAt || item.createdAt || new Date().toISOString(),
+                    read: false,
+                }));
+
+                setNotifications(realNotifications);
+            } catch (error) {
+                console.error('Erro ao carregar notificações:', error);
+            }
+        };
+
+        loadNotifications();
+    }, [setNotifications]);
 
     const filteredNotifications = notifications.filter(notification => {
         if (filter === 'unread') return !notification.read;

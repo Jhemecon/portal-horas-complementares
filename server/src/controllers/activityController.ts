@@ -15,16 +15,19 @@ export const createActivity = async (req: Request, res: Response) => {
   try {
     const { name, description, maxHoursPerActivity } = req.body;
     
-    if (!name) {
-      return res.status(400).json({ 
-        error: "O campo 'name' está vazio! Verifique se enviou os dados no formato raw -> JSON." 
-      });
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ error: "O campo 'name' é obrigatório." });
+    }
+
+    const maxHours = Number(maxHoursPerActivity);
+    if (!Number.isFinite(maxHours) || maxHours < 0) {
+      return res.status(400).json({ error: "O campo 'maxHoursPerActivity' deve ser um número válido maior ou igual a zero." });
     }
 
     const newActivity = await db.insert(activities).values({
-      name,
-      description,
-      maxHoursPerActivity
+      name: name.trim(),
+      description: description?.trim() || null,
+      maxHoursPerActivity: maxHours
     }).returning();
 
     res.status(201).json(newActivity);

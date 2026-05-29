@@ -26,18 +26,27 @@ export const createSubmission = async (req: AuthRequest, res: Response) => {
 
     const { title, hoursClaimed, activityId } = req.body;
 
-    if (!title || !hoursClaimed || !activityId) {
-      return res.status(400).json({ error: "Título, horas e ID da atividade são obrigatórios." });
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ error: "O título é obrigatório." });
+    }
+
+    const hours = Number(hoursClaimed);
+    if (!Number.isFinite(hours) || hours <= 0) {
+      return res.status(400).json({ error: "As horas reclamadas devem ser um número maior que zero." });
+    }
+
+    if (!activityId || typeof activityId !== "string") {
+      return res.status(400).json({ error: "O ID da atividade é obrigatório." });
     }
 
     const certificateUrl = `/uploads/${req.file.filename}`;
-    const studentId = req.user.id; // Pegamos do token!
+    const studentId = req.user.id;
 
     const newSubmission = await db.insert(submissions).values({
       studentId,
       activityId,
-      title,
-      hoursClaimed: parseInt(hoursClaimed as string), 
+      title: title.trim(),
+      hoursClaimed: hours,
       certificateUrl,
       status: "pending"
     }).returning();

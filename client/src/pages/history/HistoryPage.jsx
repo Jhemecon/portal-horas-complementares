@@ -45,86 +45,53 @@ const STATUS_MAP = {
     revisao: { label: 'Em Revisão', icon: AlertCircle, color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400' },
 };
 
-// ── Mock data para histórico ──────────────────────────────────────────
-const MOCK_HISTORY = [
-    {
-        id: 1,
-        title: 'Curso de React Avançado',
-        institution: 'Alura',
-        category: 'curso',
-        hoursRequested: 40,
-        hoursApproved: 40,
-        dateSubmitted: '2025-11-15',
-        dateReviewed: '2025-11-20',
-        status: 'aprovado',
-        justification: null,
-        fileName: 'certificado_react_avancado.pdf',
-        reviewer: 'Prof. João Silva',
-    },
-    {
-        id: 2,
-        title: 'Seminário de Inteligência Artificial na Educação',
-        institution: 'USP',
-        category: 'palestra',
-        hoursRequested: 8,
-        hoursApproved: 8,
-        dateSubmitted: '2025-12-02',
-        dateReviewed: '2025-12-05',
-        status: 'aprovado',
-        justification: null,
-        fileName: 'certificado_ia_educacao.pdf',
-        reviewer: 'Prof. Maria Santos',
-    },
-    {
-        id: 3,
-        title: 'Workshop de Metodologias Ativas',
-        institution: 'UNICAMP',
-        category: 'workshop',
-        hoursRequested: 16,
-        hoursApproved: null,
-        dateSubmitted: '2026-01-20',
-        dateReviewed: null,
-        status: 'pendente',
-        justification: null,
-        fileName: 'certificado_metodologias.pdf',
-        reviewer: null,
-    },
-    {
-        id: 4,
-        title: 'Programa de Extensão em Educação Inclusiva',
-        institution: 'UNESP',
-        category: 'extensao',
-        hoursRequested: 60,
-        hoursApproved: 50,
-        dateSubmitted: '2026-02-05',
-        dateReviewed: '2026-02-10',
-        status: 'aprovado',
-        justification: 'Horas reduzidas devido a sobreposição com outras atividades.',
-        fileName: 'certificado_extensao.pdf',
-        reviewer: 'Prof. Carlos Oliveira',
-    },
-    {
-        id: 5,
-        title: 'Voluntariado em ONG Local',
-        institution: 'ONG Educação',
-        category: 'voluntariado',
-        hoursRequested: 20,
-        hoursApproved: null,
-        dateSubmitted: '2026-03-01',
-        dateReviewed: '2026-03-03',
-        status: 'rejeitado',
-        justification: 'Certificado não atende aos critérios de validação. Necessário documento oficial da instituição.',
-        fileName: 'certificado_voluntariado.pdf',
-        reviewer: 'Prof. Ana Costa',
-    },
-];
 
 export default function HistoryPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [expandedRows, setExpandedRows] = useState(new Set());
-    const [history, setHistory] = useState(MOCK_HISTORY);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch('http://localhost:5000/api/submissions', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar histórico');
+                }
+
+                const submissions = await response.json();
+                const normalized = submissions.map((item) => ({
+                    id: item.id,
+                    title: item.title,
+                    institution: 'Atividade complementar cadastrada',
+                    category: 'outro',
+                    hoursRequested: item.hoursClaimed || 0,
+                    hoursApproved: item.hoursApproved ?? null,
+                    dateSubmitted: item.createdAt,
+                    dateReviewed: item.updatedAt || null,
+                    status: item.status === 'approved' ? 'aprovado' : item.status === 'rejected' ? 'rejeitado' : 'pendente',
+                    justification: item.rejectionReason || null,
+                    fileName: item.certificateUrl?.split('/').pop() || 'certificado.pdf',
+                    reviewer: null,
+                }));
+
+                setHistory(normalized);
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHistory();
+    }, []);
 
     // Filtrar dados
     const filteredHistory = history.filter(item => {
@@ -275,14 +242,19 @@ export default function HistoryPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {filteredHistory.map((item) => {
-                            const categoryInfo = getCategoryInfo(item.category);
-                            const statusInfo = STATUS_MAP[item.status];
-                            const StatusIcon = statusInfo.icon;
-                            const CategoryIcon = categoryInfo.icon;
-                            const isExpanded = expandedRows.has(item.id);
+                        {loading ? (
+                            <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">Carregando histórico do servidor...</div>
+                        ) : filteredHistory.length === 0 ? (
+                            <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">Nenhuma atividade encontrada no banco de dados.</div>
+                        ) : (
+                            filteredHistory.map((item) => {
+                                const categoryInfo = getCategoryInfo(item.category);
+                                const statusInfo = STATUS_MAP[item.status];
+                                const StatusIcon = statusInfo.icon;
+                                const CategoryIcon = categoryInfo.icon;
+                                const isExpanded = expandedRows.has(item.id);
 
-                            return (
+                                return (
                                 <Card key={item.id} className="overflow-hidden">
                                     <CardContent className="p-0">
                                         <div
@@ -376,7 +348,8 @@ export default function HistoryPage() {
                                     </CardContent>
                                 </Card>
                             );
-                        })}
+                        })
+                        )}
                     </div>
                 </CardContent>
             </Card>

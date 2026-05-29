@@ -4,8 +4,7 @@ import { hasPermissionForRole, hasRole as hasRoleUtil } from '@/lib/auth';
 
 const AuthContext = createContext(null);
 
-// Coloque aqui o endereço onde o seu back-end está a rodar
-const API_URL = 'http://localhost:5000/api'; 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export function AuthProvider({ children }) {
     // 1. Iniciamos sem nenhum utilizador logado e com o loading a true para verificar o token
@@ -72,14 +71,15 @@ export function AuthProvider({ children }) {
             }
 
             // Sucesso! Guardamos o token e os dados no navegador
-            localStorage.setItem('auth_token', data.token);
-            setUser(data.user);
-            navigate('/dashboard'); // Redireciona para o painel principal
-            
+            localStorage.setItem('auth_token', data.token || '');
+            setUser(data.user || null);
+            navigate('/certifications', { replace: true });
+
             return { success: true };
         } catch (err) {
-            setError(err.message);
-            return { success: false, error: err.message };
+            const message = err instanceof Error ? err.message : 'Erro ao fazer login';
+            setError(message);
+            return { success: false, error: message };
         } finally {
             setLoading(false);
         }
